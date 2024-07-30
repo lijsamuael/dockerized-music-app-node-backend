@@ -5,10 +5,48 @@ const Song = require("../models/song");
 // Get all songs
 const getAllSongs = async (req, res) => {
   try {
-    const songs = await Song.find();
-    res.json(songs);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
+    const { title, artist, album, genre, page = 1, pageSize = 10 } = req.query;
+    const conditions = [];
+
+    if (title) {
+      conditions.push({ title: { $regex: title, $options: "i" } });
+    }
+
+    if (artist) {
+      conditions.push({ artist: { $regex: artist, $options: "i" } });
+    }
+
+    if (album) {
+      conditions.push({ album: { $regex: album, $options: "i" } });
+    }
+
+    if (genre) {
+      conditions.push({ genre: { $regex: genre, $options: "i" } });
+    }
+
+    const query = conditions.length > 0 ? { $and: conditions } : {};
+
+    const options = {
+      page: parseInt(page),
+      limit: parseInt(pageSize),
+      sort: { createdOn: -1 },
+    };
+
+    try {
+      const searchResult = await Song.paginate(query, options);
+      res.json({
+        searchResult: searchResult.docs,
+        totalPages: searchResult.totalPages,
+        limit: searchResult.limit,
+        currentPage: searchResult.page,
+      });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: "Internal Server Error" });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" }); // Catch any other potential errors
   }
 };
 

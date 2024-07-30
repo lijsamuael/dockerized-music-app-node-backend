@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const mongoosePaginate = require("mongoose-paginate-v2");
 
 const songSchema = new mongoose.Schema({
   title: {
@@ -24,6 +25,8 @@ const songSchema = new mongoose.Schema({
     default: Date.now,
   },
 });
+
+songSchema.plugin(mongoosePaginate);
 
 const Song = mongoose.model("Song", songSchema);
 
